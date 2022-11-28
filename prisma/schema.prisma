@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
+  provider     = "cockroachdb"
   // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
   // Further reading:
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -19,7 +19,7 @@ datasource db {
 model Note {
   id      String @id @default(cuid())
   title   String
-  content String @db.MediumText // max size 16,777,215 characters
+  content String //@db.Text // @db.MediumText max size 16,777,215 characters for mysql
 
   tags   Tag[]
   userId String
@@ -48,12 +48,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String? //@db.Text
+  access_token      String? //@db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String? //@db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
