@@ -1,3 +1,10 @@
+export type InputAllowedType =
+  | 'text'
+  | 'email'
+  | 'password'
+  | 'number'
+  | 'search'
+
 export interface InputFieldProps {
   textSize?: string
   textColor?: string
@@ -56,7 +63,7 @@ export interface InputComponentProps {
   id?: string
   name: string
   label: string
-  type?: 'text' | 'email' | 'password' | 'number' | 'search'
+  type?: InputAllowedType
   hasBorder?: boolean
   rounded?: boolean
   disabled?: boolean

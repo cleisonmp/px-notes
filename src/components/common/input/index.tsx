@@ -1,6 +1,12 @@
+import type { KeyboardEvent } from 'react'
 import { forwardRef, useCallback, useState } from 'react'
 import { cx } from 'classix'
-import type { InputComponentProps, InputFieldProps, LabelProps } from './input'
+import type {
+  InputAllowedType,
+  InputComponentProps,
+  InputFieldProps,
+  LabelProps,
+} from './input'
 import { mockInputComponentProps } from './input.mocks'
 
 export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
@@ -23,7 +29,9 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
     ref,
   ) {
     const [passwordVisible, setPasswordVisible] = useState(false)
-    const [inputType, setInputType] = useState(type)
+    const [inputType, setInputType] = useState<InputAllowedType>(
+      iconProps?.hasPasswordToggle ? 'password' : type,
+    )
 
     //Props
     const hasPasswordToggle = iconProps?.hasPasswordToggle
@@ -73,12 +81,23 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
 
     const handleRightIconClick = useCallback(() => {
       if (hasPasswordToggle) {
-        setInputType(passwordVisible ? 'text' : 'password')
+        setInputType(!passwordVisible ? 'text' : 'password')
         setPasswordVisible((state) => !state)
       } else {
         iconProps?.iconOnClickCallback?.()
       }
     }, [hasPasswordToggle, iconProps, passwordVisible])
+
+    const handleKeyboardClick = useCallback(
+      (event: KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === 'Enter' || event.key === '') {
+          event.preventDefault()
+          event.stopPropagation()
+          handleRightIconClick()
+        }
+      },
+      [handleRightIconClick],
+    )
 
     return (
       <>
@@ -131,7 +150,7 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
               </div>
             )}
             {hasRightIcon && (
-              <div
+              <button
                 className={cx(
                   'absolute right-4 peer-disabled:cursor-not-allowed ',
                   (hasPasswordToggle || !!iconProps?.iconOnClickCallback) &&
@@ -139,13 +158,14 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
                   ...Object.values(rightIconClasses),
                 )}
                 onClick={handleRightIconClick}
+                onKeyDown={handleKeyboardClick}
               >
                 {hasPasswordToggle
                   ? passwordVisible
-                    ? iconProps?.rightIcon
-                    : iconProps?.rightIconHidePass
+                    ? iconProps?.rightIconHidePass
+                    : iconProps?.rightIcon
                   : iconProps?.rightIcon}
-              </div>
+              </button>
             )}
           </div>
           <div
