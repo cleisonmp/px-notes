@@ -9,6 +9,7 @@ import { trpc } from '../utils/trpc'
 import { Logo } from '../components/common/logo'
 import { Seo } from '../components/utils/seo'
 import { Input } from '../components/common/input'
+import { CredentialsProvider } from './api/auth/_providers/credentials'
 
 const Home: NextPage = () => {
   const hello = trpc.example.hello.useQuery({ text: 'from tRPC' })
