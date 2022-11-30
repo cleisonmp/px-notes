@@ -16,6 +16,9 @@ import { CredentialsProvider } from './_providers/credentials'
 const COOKIE_NAME = 'next-auth.session-token'
 const adapter = PrismaAdapter(prisma)
 export const authOptions: NextAuthOptions = {
+  pages: {
+    signIn: '/signin',
+  },
   adapter: adapter,
   callbacks: {
     session({ session, user }) {
