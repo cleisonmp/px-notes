@@ -14,8 +14,9 @@ export const userRouter = router({
           newPassword: z.string().min(8),
         })
         .refine(
-          ({ currentPassword, newPassword }) => currentPassword === newPassword,
+          ({ currentPassword, newPassword }) => currentPassword !== newPassword,
           {
+            // Refinement functions should return a falsy value to signal failure.
             message: 'New passwords must be different from current password.',
             path: ['newPassword'],
           },
