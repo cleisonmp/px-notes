@@ -73,17 +73,14 @@ export const userRouter = router({
           .string()
           .email()
           .transform((email) => email.toLowerCase()),
-        password: z
-          .string()
-          .min(8)
-          .transform(async (password) => await getHash(password)),
+        password: z.string().min(8),
       }),
     )
     .mutation(async ({ ctx, input: { email, password } }) => {
       return await ctx.prisma.user.create({
         data: {
           email,
-          password,
+          password: await getHash(password),
         },
       })
     }),
