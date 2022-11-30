@@ -1,32 +1,73 @@
 import Provider from 'next-auth/providers/credentials'
+import { compareHash } from '../../../../lib/utils/hash'
+import { prisma } from '../../../../server/db/client'
 
 export const CredentialsProvider = Provider({
-  // The name to display on the sign in form (e.g. "Sign in with...")
   name: 'Credentials',
-  // `credentials` is used to generate a form on the sign in page.
-  // You can specify which fields should be submitted, by adding keys to the `credentials` object.
-  // e.g. domain, username, password, 2FA token, etc.
-  // You can pass any HTML attribute to the <input> tag through the object.
   credentials: {
-    username: { label: 'Username', type: 'text', placeholder: 'jsmith' },
+    email: { label: 'Email', type: 'email', placeholder: 'mail@mail.com' },
     password: { label: 'Password', type: 'password' },
   },
-  async authorize(credentials, req) {
-    // Add logic here to look up the user from the credentials supplied
-    const user =
-      credentials?.password === '1'
-        ? { id: '1', name: 'J Smith', email: 'jsmith@example.com' }
-        : null
+  async authorize(credentials) {
+    console.log('credentials', credentials)
+
+    if (!credentials) {
+      console.error(`Something broke, credentials are missing.`)
+      throw new Error('internal-server-error')
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: credentials?.email.toLowerCase(),
+      },
+      /*select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        image: true,
+        name: true,
+        password: true,
+      },*/
+    })
+    if (!user) {
+      throw new Error('invalid-credentials')
+    }
+
+    const isCorrectPassword = await compareHash(
+      credentials.password,
+      user.password ?? '',
+    )
+    if (!isCorrectPassword) {
+      throw new Error('invalid-credentials')
+    }
+
+    console.log('=================user=======================', user)
 
     return user
-    if (user) {
-      // Any object returned will be saved in `user` property of the JWT
-      return user
-    } else {
-      // If you return null then an error will be displayed advising the user to check their details.
-      return null
-
-      // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
-    }
   },
 })
+
+//const caller = appRouter.createCaller({ prisma, session: null })
+//const result = await caller.user.createUser({email,password})
+/*if (!user) {
+      console.log('going to create')
+
+      const caller = appRouter.createCaller({ prisma, session: null })
+      console.log('going to call')
+      try {
+        const result = await caller.user.createUser({
+          email,
+          password: 'password',
+        })
+        console.log('try', result)
+        return result
+      } catch (error) {
+        console.error(error)
+      }
+
+      return null
+    }*/
+
+/*if (user.password === null) return null
+
+    if (user.password !== credentials?.password) return null*/
