@@ -1,15 +1,13 @@
 import { type NextPage } from 'next'
-import Head from 'next/head'
 import Link from 'next/link'
-import { signIn, signOut, useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 import { trpc } from '../utils/trpc'
 import { Logo } from '../components/common/logo'
-import { Seo } from '../components/utils/seo'
 import { Input } from '../components/common/input'
-import { CredentialsProvider } from './api/auth/_providers/credentials'
+import { Seo } from '../components/utils/seo'
 
 const Home: NextPage = () => {
   const hello = trpc.example.hello.useQuery({ text: 'from tRPC' })
@@ -36,18 +34,18 @@ export default Home
 
 const AuthShowcase: React.FC = () => {
   const { data: sessionData } = useSession()
+  console.log('sessionData', sessionData)
 
   const { data: secretMessage } = trpc.auth.getSecretMessage.useQuery(
     undefined, // no input
-    { enabled: sessionData?.user !== undefined },
+    {
+      enabled: sessionData?.user !== undefined,
+    },
   )
+  console.log('secretMessage', secretMessage)
 
-  const handleSignClick = () => {
-    if (sessionData) {
-      void signOut()
-    } else {
-      void signIn()
-    }
+  const handleSignOut = () => {
+    void signOut()
   }
   return (
     <div className='flex flex-col items-center justify-center gap-4'>
@@ -66,12 +64,21 @@ const AuthShowcase: React.FC = () => {
           label='Password'
         />
       </div>
-      <button
-        className='rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20'
-        onClick={handleSignClick}
-      >
-        {sessionData ? 'Sign out' : 'Sign in'}
-      </button>
+      {sessionData ? (
+        <button
+          className='rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20'
+          onClick={handleSignOut}
+        >
+          Sign out
+        </button>
+      ) : (
+        <Link
+          className='rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20'
+          href='/signin'
+        >
+          Sign in
+        </Link>
+      )}
     </div>
   )
 }
