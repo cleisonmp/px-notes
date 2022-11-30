@@ -37,6 +37,7 @@ export const authOptions: NextAuthOptions = {
   secret: env.NEXTAUTH_SECRET,
   debug: true, //TODO remove debug mode
   providers: [
+    //https://next-auth.js.org/providers/
     CredentialsProvider,
     DiscordProvider({
       clientId: env.DISCORD_CLIENT_ID,
