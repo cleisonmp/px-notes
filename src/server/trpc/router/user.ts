@@ -1,6 +1,8 @@
 import { TRPCError } from '@trpc/server'
+import { getCsrfToken } from 'next-auth/react'
 import { z } from 'zod'
 
+import { createUserSchema } from '../../../types/schemas/zod/user'
 import { compareHash, getHash } from '../../../lib/utils/hash'
 
 import { router, publicProcedure, protectedProcedure } from '../trpc'
@@ -25,7 +27,7 @@ export const userRouter = router({
     .mutation(
       async ({ ctx, input: { newPassword, currentPassword: oldPassword } }) => {
         const currentPasswordFromDatabase = (
-          await ctx.prisma.user.findFirst({
+          await ctx.prisma.user.findUnique({
             where: {
               id: ctx.session.user.id,
             },
@@ -68,18 +70,35 @@ export const userRouter = router({
       },
     ),
   createUser: publicProcedure
-    .input(
-      z.object({
-        email: z
-          .string()
-          .email()
-          .transform((email) => email.toLowerCase()),
-        password: z.string().min(8),
-      }),
-    )
-    .mutation(async ({ ctx, input: { email, password } }) => {
+    .input(createUserSchema)
+    .mutation(async ({ ctx, input: { name, email, password, csrfToken } }) => {
+      const serverCsrfToken = await getCsrfToken({ req: ctx.req })
+
+      if (csrfToken !== serverCsrfToken) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'WRONG_TOKEN',
+        })
+      }
+      const userAlreadyExists = await ctx.prisma.user.findUnique({
+        where: {
+          email,
+        },
+        select: {
+          id: true,
+        },
+      })
+
+      if (userAlreadyExists) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'USER_ALREADY_EXISTS',
+        })
+      }
+
       return await ctx.prisma.user.create({
         data: {
+          name,
           email,
           password: await getHash(password),
         },
