@@ -9,3 +9,17 @@ export const createUserSchema = z.object({
   password: z.string().min(8),
   csrfToken: z.string(),
 })
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().optional(),
+    newPassword: z.string().min(8),
+    csrfToken: z.string(),
+  })
+  .refine(
+    ({ currentPassword, newPassword }) => currentPassword !== newPassword,
+    {
+      // Refinement functions should return a falsy value to signal failure.
+      message: 'New passwords must be different from current password.',
+      path: ['newPassword'],
+    },
+  )

@@ -2,30 +2,31 @@ import { TRPCError } from '@trpc/server'
 import { getCsrfToken } from 'next-auth/react'
 import { z } from 'zod'
 
-import { createUserSchema } from '../../../types/schemas/zod/user'
+import {
+  changePasswordSchema,
+  createUserSchema,
+} from '../../../types/schemas/zod/user'
 import { compareHash, getHash } from '../../../lib/utils/hash'
 
 import { router, publicProcedure, protectedProcedure } from '../trpc'
 
 export const userRouter = router({
   changePassword: protectedProcedure
-    .input(
-      z
-        .object({
-          currentPassword: z.string().optional(),
-          newPassword: z.string().min(8),
-        })
-        .refine(
-          ({ currentPassword, newPassword }) => currentPassword !== newPassword,
-          {
-            // Refinement functions should return a falsy value to signal failure.
-            message: 'New passwords must be different from current password.',
-            path: ['newPassword'],
-          },
-        ),
-    )
+    .input(changePasswordSchema)
     .mutation(
-      async ({ ctx, input: { newPassword, currentPassword: oldPassword } }) => {
+      async ({
+        ctx,
+        input: { newPassword, currentPassword: oldPassword, csrfToken },
+      }) => {
+        const serverCsrfToken = await getCsrfToken({ req: ctx.req })
+
+        if (csrfToken !== serverCsrfToken) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'WRONG_TOKEN',
+          })
+        }
+
         const currentPasswordFromDatabase = (
           await ctx.prisma.user.findUnique({
             where: {
