@@ -24,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
       labelProps,
       errorLabelProps,
       iconProps,
-      ...props //form controller props onCHange/onBlur
+      ...props //form controller props onCHange/onBlur type UseFormRegisterReturn
     },
     ref,
   ) {
@@ -151,6 +151,7 @@ export const Input = forwardRef<HTMLInputElement, InputComponentProps>(
             )}
             {hasRightIcon && (
               <button
+                type='button'
                 className={cx(
                   'absolute right-4 peer-disabled:cursor-not-allowed ',
                   (hasPasswordToggle || !!iconProps?.iconOnClickCallback) &&
