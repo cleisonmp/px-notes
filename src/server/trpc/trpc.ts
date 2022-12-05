@@ -1,6 +1,7 @@
-import { initTRPC, TRPCError } from '@trpc/server'
+import { getCsrfToken } from 'next-auth/react'
 import superjson from 'superjson'
-
+import { z } from 'zod'
+import { initTRPC, TRPCError } from '@trpc/server'
 import { type Context } from './context'
 
 const t = initTRPC.context<Context>().create({
@@ -37,3 +38,37 @@ const isAuthed = t.middleware(({ ctx, next }) => {
  * Protected procedure
  **/
 export const protectedProcedure = t.procedure.use(isAuthed)
+
+/**
+ * Database procedures helpers
+ **/
+const csrfTokenSchema = z.object({
+  csrfToken: z.string(),
+})
+type csrfTokenInputType = z.infer<typeof csrfTokenSchema>
+
+const hasCsrfToken = t.middleware(async ({ ctx, next, input }) => {
+  const { csrfToken } = input as csrfTokenInputType
+
+  const serverCsrfToken = await getCsrfToken({ req: ctx.req })
+
+  if (csrfToken !== serverCsrfToken) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'WRONG_TOKEN',
+    })
+  }
+
+  return next({
+    ctx,
+  })
+})
+
+/**
+ * Database procedures require auth and csrfToken
+ * @example  csrfToken: await getCsrfToken()
+ **/
+export const databaseProcedure = t.procedure
+  .input(csrfTokenSchema)
+  .use(hasCsrfToken)
+  .use(isAuthed)
