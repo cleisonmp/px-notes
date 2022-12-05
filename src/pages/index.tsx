@@ -107,12 +107,6 @@ const AuthShowcase: React.FC = () => {
             // https://github.com/react-hook-form/react-hook-form/commit/7bfa3747f42ee648d0440c98d37be832a98805f2
           }
         >
-          <input
-            defaultValue=''
-            type='hidden'
-            hidden
-            {...register('csrfToken')}
-          />
           <Input
             iconProps={{
               hasPasswordToggle: true,

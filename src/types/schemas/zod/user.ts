@@ -13,7 +13,6 @@ export const changePasswordSchema = z
   .object({
     currentPassword: z.string().optional(),
     newPassword: z.string().min(8),
-    csrfToken: z.string(),
   })
   .refine(
     ({ currentPassword, newPassword }) => currentPassword !== newPassword,

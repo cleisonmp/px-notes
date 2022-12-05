@@ -1,6 +1,4 @@
 import { TRPCError } from '@trpc/server'
-import { getCsrfToken } from 'next-auth/react'
-import { z } from 'zod'
 
 import {
   changePasswordSchema,
@@ -8,25 +6,13 @@ import {
 } from '../../../types/schemas/zod/user'
 import { compareHash, getHash } from '../../../lib/utils/hash'
 
-import { router, publicProcedure, protectedProcedure } from '../trpc'
+import { router, publicProcedure, databaseProcedure } from '../trpc'
 
 export const userRouter = router({
-  changePassword: protectedProcedure
+  changePassword: databaseProcedure
     .input(changePasswordSchema)
     .mutation(
-      async ({
-        ctx,
-        input: { newPassword, currentPassword: oldPassword, csrfToken },
-      }) => {
-        const serverCsrfToken = await getCsrfToken({ req: ctx.req })
-
-        if (csrfToken !== serverCsrfToken) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'WRONG_TOKEN',
-          })
-        }
-
+      async ({ ctx, input: { newPassword, currentPassword: oldPassword } }) => {
         const currentPasswordFromDatabase = (
           await ctx.prisma.user.findUnique({
             where: {
@@ -72,15 +58,7 @@ export const userRouter = router({
     ),
   createUser: publicProcedure
     .input(createUserSchema)
-    .mutation(async ({ ctx, input: { name, email, password, csrfToken } }) => {
-      const serverCsrfToken = await getCsrfToken({ req: ctx.req })
-
-      if (csrfToken !== serverCsrfToken) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'WRONG_TOKEN',
-        })
-      }
+    .mutation(async ({ ctx, input: { name, email, password } }) => {
       const userAlreadyExists = await ctx.prisma.user.findUnique({
         where: {
           email,
