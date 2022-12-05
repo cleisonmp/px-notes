@@ -29,10 +29,13 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.40.0",
     "react-icons": "^4.6.0",
+    "react-select": "^5.7.0",
     "superjson": "1.9.1",
     "zod": "^3.18.0"
   },
   "devDependencies": {
+    "@emotion/cache": "^11.10.5",
+    "@emotion/react": "^11.10.5",
     "@tanstack/react-query-devtools": "^4.18.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/cookies": "^0.7.7",
