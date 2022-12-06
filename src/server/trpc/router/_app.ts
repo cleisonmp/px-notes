@@ -2,11 +2,13 @@ import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 import { router } from '../trpc'
 import { authRouter } from './auth'
 import { exampleRouter } from './example'
+import { tagRouter } from './tag'
 import { userRouter } from './user'
 
 export const appRouter = router({
   example: exampleRouter,
   auth: authRouter,
+  tag: tagRouter,
   user: userRouter,
 })
 
